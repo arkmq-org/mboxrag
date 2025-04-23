@@ -1,0 +1,14 @@
+pandas
+langchain_community
+langchain_text_splitters
+beautifulsoup4
+pymilvus
+langchain_milvus
+langchain_huggingface
+huggingface_hub
+langchain_openai
+requests
+python-dotenv
+matplotlib
+fastapi[standard]
+mailbox
