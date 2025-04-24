@@ -6,6 +6,8 @@ questions about a list of mails.
 This works using a RAG (Retrieval Augmented Generation) and a LLM for the human
 interaction.
 
+![Screenshot From 2025-04-24 16-58-57](https://github.com/user-attachments/assets/e8f344d0-b7cd-41ac-a53c-afb127673a00)
+
 ## Server
 
 Populate a `.env` file at the root of the repository with the following
@@ -51,3 +53,16 @@ curl -X 'POST' \
   "question": "Summarize the thread 'type some subject there', list participants and dates of responses"
 }'
 ```
+
+## Frontend
+
+After having started the server in one terminal, install the dependencies and
+start the frontend server:
+
+```
+cd Frontend
+yarn
+yarn start:dev
+```
+
+Visit http://localhost:9000 to start chatting with the bot.

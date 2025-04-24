@@ -3,6 +3,10 @@ from ctypes import ArgumentError
 from fastapi import FastAPI
 
 from uuid import uuid4
+
+from fastapi.responses import JSONResponse
+from numpy import e
+from sqlalchemy.sql.ddl import exc
 from mboxtopandas import mbox_to_pandas
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -19,6 +23,8 @@ load_dotenv()
 
 import logging
 logger = logging.getLogger('uvicorn.errors')
+
+from fastapi.middleware.cors import CORSMiddleware
 
 def connect_to_milvus():
     embeddings = HuggingFaceEmbeddings(model_name="mixedbread-ai/mxbai-embed-large-v1")
@@ -91,8 +97,6 @@ def fetch_context():
     return milvus.as_retriever() | format_docs
 
 def define_rag_pipeline():
-
-    # Define the prompt template
     prompt_template = """
     Human: You are an AI assistant, and provides answers to questions by using fact based and statistical information when possible.
     Use the following pieces of information to provide a complete answer to the question enclosed in <question> tags.
@@ -133,10 +137,32 @@ async def lifespan(_: FastAPI):
 
 class Question(BaseModel):
     question: str
+class Answer(BaseModel):
+    answer: str
+class Error(BaseModel):
+    error: str
 
 app = FastAPI(lifespan=lifespan)
 
-@app.post("/ask")
+origins = [
+    "http://localhost",
+    "http://localhost:9000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.post("/ask", response_model=Answer, responses={500: {"model": Error}})
 async def ask(question : Question):
-    res = app.state.rag_chain.invoke(question.question)
-    return {"message": res}
+    try:
+        res = app.state.rag_chain.invoke(question.question)
+        return {"answer": res}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": f"{e}"})
+
+
