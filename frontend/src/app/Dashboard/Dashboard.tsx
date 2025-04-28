@@ -59,7 +59,9 @@ export const ChatbotDemo: React.FunctionComponent = () => {
       onSuccess: (data: Answer) => {
         updateLastMessage(data.answer, false);
       },
-      onError: (error: any) => updateLastMessage(error.message, true),
+      onError: (error: any) => updateLastMessage(
+        "Error:\n```json\n" + JSON.stringify(error, null, 2) + "\n```", true
+      ),
     });
 
 
@@ -110,12 +112,12 @@ export const ChatbotDemo: React.FunctionComponent = () => {
     {
       title: 'Example prompt: subscribing to the mailing list',
       message: "How can I subscribe to the mailing list?",
-      onClick: () => handleSend( "How can I subscribe to the mailing list?")
+      onClick: () => handleSend("How can I subscribe to the mailing list?")
     },
     {
       title: 'Example prompt: SSL issues',
       message: "I'm experiencing issues configuring SSL for my broker, can you give me some advice? Has anyone encounter the same kind of issues? List subjects, participants and add dates.",
-      onClick: () => handleSend( "I'm experiencing issues configuring SSL for my broker, can you give me some advice? Has anyone encounter the same kind of issues? List subjects, participants and add dates.")
+      onClick: () => handleSend("I'm experiencing issues configuring SSL for my broker, can you give me some advice? Has anyone encounter the same kind of issues? List subjects, participants and add dates.")
     },
   ];
   return (

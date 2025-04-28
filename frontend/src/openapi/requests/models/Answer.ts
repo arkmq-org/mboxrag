@@ -4,5 +4,6 @@
 
 export type Answer = {
     answer: string;
+    context: string;
 };
 

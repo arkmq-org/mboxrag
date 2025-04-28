@@ -28,12 +28,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 def connect_to_milvus():
     embeddings = HuggingFaceEmbeddings(model_name="mixedbread-ai/mxbai-embed-large-v1")
-    logger.info("Connecting to Milvus!")
     connection_args={"uri": os.getenv('URI')}
     if os.getenv('MILVUS_TOKEN'):
         connection_args["token"] = os.getenv('MILVUS_TOKEN')
     if os.getenv('MILVUS_TOKEN'):
         connection_args["db_name"] = os.getenv('MILVUS_DB')
+    logger.info("Connecting to Milvus! %s", connection_args)
     app.state.vectorstore = Milvus(
             embedding_function=embeddings,
             connection_args=connection_args,
@@ -91,7 +91,8 @@ def fetch_context():
     def format_docs(docs : list[Document]):
         context = ""
         for doc in docs:
-            context += f"{doc.metadata}: \n {doc.page_content}:\n---------------\n\n"
+            context += f"## {doc.metadata}\n```\n{doc.page_content}\n```\n"
+        app.state.last_request_context = context
         return context
 
     return milvus.as_retriever() | format_docs
@@ -139,6 +140,7 @@ class Question(BaseModel):
     question: str
 class Answer(BaseModel):
     answer: str
+    context: str
 class Error(BaseModel):
     error: str
 
@@ -161,8 +163,11 @@ app.add_middleware(
 async def ask(question : Question):
     try:
         res = app.state.rag_chain.invoke(question.question)
-        return {"answer": res}
+        return {
+                "answer": res,
+                "context":app.state.last_request_context
+                }
     except Exception as e:
+        logger.exception(e)
         return JSONResponse(status_code=500, content={"error": f"{e}"})
-
 
