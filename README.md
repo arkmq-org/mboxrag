@@ -104,3 +104,21 @@ yarn start:dev
 ```
 
 Visit http://localhost:9000 to start chatting with the bot.
+
+### container
+
+#### build command
+
+```bash
+cd server
+podman build -t quay.io/tlavocat/mboxrag-frontend:latest .
+podman push quay.io/tlavocat/mboxrag-frontend:latest # optionally push to quay
+```
+
+### running command
+
+```bash
+podman run 8080:8080 -it quay.io/tlavocat/mboxrag-frontend:latest
+```
+
+Then visit http://localhost:8080

@@ -1,0 +1,16 @@
+FROM registry.access.redhat.com/ubi9/nodejs-20:latest AS build-image
+
+WORKDIR frontend
+COPY package.json package.json
+COPY yarn.lock yarn.lock
+COPY src src
+COPY *.js .
+COPY *.json .
+RUN command -v yarn || npm i -g yarn
+EXPOSE 8080
+
+USER root
+RUN yarn install --network-timeout 1000000
+RUN yarn build
+USER 1001
+ENTRYPOINT ["yarn", "start"]
