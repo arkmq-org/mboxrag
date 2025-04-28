@@ -1,0 +1,10 @@
+FROM registry.access.redhat.com/ubi9/python-312
+WORKDIR /server
+COPY requirements.txt .
+RUN pip install --upgrade pip
+RUN pip install --no-cache-dir --upgrade -r requirements.txt
+COPY *.py .
+EXPOSE 8000
+COPY extra_certs/*.pem .
+RUN find ./ -type f -name "*.pem" -exec cat {} >> $(python -m certifi) \;
+ENTRYPOINT [ "fastapi", "run", "main.py" ]

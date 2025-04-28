@@ -54,6 +54,44 @@ curl -X 'POST' \
 }'
 ```
 
+### container
+
+#### extra certs
+
+Put in the `extra_certs` directory all the additional PEM files needed to access
+the services you need (i.e if the inference server needs particlar certs, add
+them in this folder before the build)
+
+#### build command
+
+```bash
+cd server
+podman build -t quay.io/tlavocat/mboxrag-server:latest .
+podman push quay.io/tlavocat/mboxrag-server:latest # optionally push to quay
+```
+
+### running command
+
+```bash
+podman run --env-file .env -v $(pwd)/db:/server/db:Z,U -p 8000:8000 -it quay.io/tlavocat/mboxrag-server:latest
+```
+
+`.env` needs to be configured as explained in the server section.
+
+You can share a DB folder containing a pre-populated milvus database and mount
+it into the container, the above command line would work in combination with
+the following env:
+
+```
+URI=./db/milvus_demo.db
+CREATE_MILVUS_DATABASE=False
+MODEL_API_URL= # has to be set!
+MODEL= # has to be set!
+MODEL_ACCESS_TOKEN= # has to be set!
+```
+
+Be sure you set every needed variable though.
+
 ## Frontend
 
 After having started the server in one terminal, install the dependencies and
