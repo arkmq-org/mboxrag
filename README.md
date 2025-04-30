@@ -62,7 +62,7 @@ Put in the `extra_certs` directory all the additional PEM files needed to access
 the services you need (i.e if the inference server needs particlar certs, add
 them in this folder before the build)
 
-#### build command
+#### build
 
 ```bash
 cd server
@@ -70,7 +70,7 @@ podman build -t quay.io/arkmq-org/mboxrag-server:latest .
 podman push quay.io/arkmq-org/mboxrag-server:latest # optionally push to quay
 ```
 
-### running command
+### run
 
 ```bash
 podman run --env-file .env -v $(pwd)/db:/server/db:Z,U -p 8000:8000 -it quay.io/arkmq-org/mboxrag-server:latest
@@ -95,7 +95,7 @@ Be sure you set every needed variable though.
 
 ### K8s or OpenShit deployment
 
-Once you have deployed and pushed your image to the registry of your choice, you
+Once you have build and pushed your image to the registry of your choice, you
 can deploy the server to a k8s compatible cluster:
 
 ```bash
@@ -151,7 +151,7 @@ Visit http://localhost:9000 to start chatting with the bot.
 
 ### container
 
-#### build command
+#### build
 
 ```bash
 cd server
@@ -159,10 +159,26 @@ podman build -t quay.io/arkmq-org/mboxrag-frontend:latest .
 podman push quay.io/arkmq-org/mboxrag-frontend:latest # optionally push to quay
 ```
 
-### running command
+### run
 
 ```bash
 podman run 8080:8080 -it quay.io/arkmq-org/mboxrag-frontend:latest
 ```
 
 Then visit http://localhost:8080
+
+### K8s or OpenShit deployment
+
+Once you have build and pushed your image to the registry of your choice, you
+can deploy the frontend to a k8s compatible cluster:
+
+```bash
+cd server
+./deploy.sh \
+    -i ${CONTAINER_URL}\
+```
+
+Finally, visit the cluster route that was exposed to find the service:
+http://mboxrag-frontend-mbox-rag-frontend.apps-crc.testing
+
+And you can start chatting with your bot.

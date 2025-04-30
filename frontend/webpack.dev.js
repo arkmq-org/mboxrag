@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
+const webpack = require('webpack');
 const path = require('path');
 const { merge } = require('webpack-merge');
 const common = require('./webpack.common.js');
@@ -22,6 +23,11 @@ module.exports = merge(common('development'), {
       overlay: true,
     },
   },
+  plugins: [
+    new webpack.DefinePlugin({
+      'process.env.MBOX_RAG_SERVER_URL': JSON.stringify(process.env.MBOX_RAG_SERVER_URL),
+    }),
+  ],
   module: {
     rules: [
       {

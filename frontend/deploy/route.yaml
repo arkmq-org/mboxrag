@@ -1,0 +1,18 @@
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: mboxrag-frontend
+  namespace: mbox-rag-frontend
+  annotations:
+    openshift.io/host.generated: 'true'
+spec:
+  host: mboxrag-frontend-mbox-rag-frontend.apps-crc.testing
+  path: /
+  to:
+    kind: Service
+    name: mbox-rag-frontend
+    weight: 100
+  port:
+    targetPort: 80-tcp
+  wildcardPolicy: None
+status:

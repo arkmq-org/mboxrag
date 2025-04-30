@@ -8,12 +8,15 @@ import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {OpenAPI} from 'src/openapi/requests';
 
 
-export const useGetApiServerBaseUrl = (): string => {
-  return 'http://127.0.0.1:8000'
-};
-
 const App: React.FunctionComponent = () => {
-  OpenAPI.BASE = useGetApiServerBaseUrl();
+  OpenAPI.BASE = 'http://localhost:9000'
+  if (window.location.hostname.includes("frontend")){
+    OpenAPI.BASE = 'http://'+window.location.hostname.replaceAll("frontend", "server")
+  }
+  if (process.env.MBOX_RAG_SERVER_URL) {
+    OpenAPI.BASE = process.env.MBOX_RAG_SERVER_URL
+  }
+  console.log("Mbox rag server URL: ", OpenAPI.BASE)
   const queryClient = new QueryClient();
   return (
     <QueryClientProvider client={queryClient}>

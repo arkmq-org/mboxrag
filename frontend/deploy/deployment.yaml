@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: mbox-rag-frontend
+  name: mbox-rag-frontend
+  labels:
+    app: mbox-rag-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mbox-rag-frontend
+  template:
+    metadata:
+      labels:
+        app: mbox-rag-frontend
+    spec:
+      containers:
+        - name: mbox-rag-frontend
+          image: quay.io/arkmq-org/mbox-rag-frontend:latest
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          args: ['start']
+          command:
+            - yarn
+          imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 10m
+              memory: 50Mi
+      restartPolicy: Always
+      dnsPolicy: ClusterFirst
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%

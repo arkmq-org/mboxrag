@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
-const { merge } = require('webpack-merge');
+const {merge} = require('webpack-merge');
 const common = require('./webpack.common.js');
-const { stylePaths } = require('./stylePaths');
+const {stylePaths} = require('./stylePaths');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const TerserJSPlugin = require('terser-webpack-plugin');
@@ -15,7 +15,7 @@ module.exports = merge(common('production'), {
       new TerserJSPlugin({}),
       new CssMinimizerPlugin({
         minimizerOptions: {
-          preset: ['default', { mergeLonghand: false }],
+          preset: ['default', {mergeLonghand: false}],
         },
       }),
     ],

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mbox-rag-frontend
+  namespace: mbox-rag-frontend
+  labels:
+    app: mbox-rag-frontend
+    app.kubernetes.io/component: mbox-rag-frontend
+    app.kubernetes.io/instance: mbox-rag-frontend
+    app.kubernetes.io/part-of: mbox-rag-frontend
+spec:
+  ports:
+    - name: 80-tcp
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: mbox-rag-frontend
+  type: ClusterIP
+  sessionAffinity: None
