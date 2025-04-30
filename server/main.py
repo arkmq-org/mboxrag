@@ -1,9 +1,7 @@
 from contextlib import asynccontextmanager
 from ctypes import ArgumentError
-from fastapi import FastAPI
-
 from uuid import uuid4
-
+from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from numpy import e
 from sqlalchemy.sql.ddl import exc
@@ -149,7 +147,11 @@ app = FastAPI(lifespan=lifespan)
 origins = [
     "http://localhost",
     "http://localhost:9000",
+    "http://localhost:8080",
 ]
+
+if os.getenv("CORS_FRONTEND_URL"):
+    origins.append(os.getenv("CORS_FRONTEND_URL")) #type: ignore
 
 app.add_middleware(
     CORSMiddleware,

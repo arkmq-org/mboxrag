@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: mbox-rag-server
+  name: mbox-rag-server
+  labels:
+    app: mbox-rag-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mbox-rag-server
+  template:
+    metadata:
+      labels:
+        app: mbox-rag-server
+    spec:
+      containers:
+        - name: mbox-rag-server
+          image: quay.io/arkmq-org/mbox-rag-server:latest
+          env:
+            - name: CORS_FRONTEND_URL
+              value: 'http://mboxrag-frontend-mbox-rag-frontend.apps-crc.testing'
+            - name: NODE_EXTRA_CA_CERTS
+              value: '/var/jolokia-api-server-selfsigned-ca-cert-secret/ca.crt'
+            - name: URI
+              value: '/server/db/milvus_demo.db'
+            - name: CREATE_MILVUS_DATABASE
+              value: 'False'
+            - name: CHUNK_DOCS
+              value: 'False'
+            - name: CHUNK_SIZE
+              value: '2000'
+            - name: CHUNK_OVERLAP
+              value: '200'
+            - name: MBOX_DIR
+              value: '/server/mails'
+            - name: MODEL_API_URL
+              value: 'model-api-url'
+            - name: MODEL
+              value: 'model-name'
+            - name: MODEL_ACCESS_TOKEN
+              value: 'model-token'
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          args: ['run', 'main.py']
+          command:
+            - fastapi
+          imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 10m
+              memory: 50Mi
+          volumeMounts:
+            - mountPath: /server/db
+              name: mbox-rag-server-db-storage
+            - mountPath: /server/mails
+              name: mbox-rag-server-mail-storage
+      initContainers:
+        - name: init-mbox-rag
+          image: registry.access.redhat.com/ubi8/ubi:latest
+          command: ['sh', '-c', 'FOLDER_TO_SCAN=$([[ "$CREATE_MILVUS_DATABASE" = "True" ]] && echo "/server/mails" || echo "/server/db"); while [[ "$(ls -a $FOLDER_TO_SCAN | wc -l)" -eq "2" ]]; do echo waiting for files in $FOLDER_TO_SCAN; sleep 30; done; sync; echo init done']
+          volumeMounts:
+            - mountPath: /server/db
+              name: mbox-rag-server-db-storage
+            - mountPath: /server/mails
+              name: mbox-rag-server-mail-storage
+      volumes:
+        - name: mbox-rag-server-db-storage
+          persistentVolumeClaim:
+            claimName: mbox-rag-server-db-storage-claim
+        - name: mbox-rag-server-mail-storage
+          persistentVolumeClaim:
+            claimName: mbox-rag-server-mail-storage-claim
+      restartPolicy: Always
+      dnsPolicy: ClusterFirst
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%

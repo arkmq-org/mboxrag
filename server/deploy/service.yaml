@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mbox-rag-server
+  namespace: mbox-rag-server
+  labels:
+    app: mbox-rag-server
+    app.kubernetes.io/component: mbox-rag-server
+    app.kubernetes.io/instance: mbox-rag-server
+    app.kubernetes.io/part-of: mbox-rag-server
+spec:
+  ports:
+    - name: 80-tcp
+      protocol: TCP
+      port: 8000
+      targetPort: 8000
+  selector:
+    app: mbox-rag-server
+  type: ClusterIP
+  sessionAffinity: None

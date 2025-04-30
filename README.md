@@ -66,14 +66,14 @@ them in this folder before the build)
 
 ```bash
 cd server
-podman build -t quay.io/tlavocat/mboxrag-server:latest .
-podman push quay.io/tlavocat/mboxrag-server:latest # optionally push to quay
+podman build -t quay.io/arkmq-org/mboxrag-server:latest .
+podman push quay.io/arkmq-org/mboxrag-server:latest # optionally push to quay
 ```
 
 ### running command
 
 ```bash
-podman run --env-file .env -v $(pwd)/db:/server/db:Z,U -p 8000:8000 -it quay.io/tlavocat/mboxrag-server:latest
+podman run --env-file .env -v $(pwd)/db:/server/db:Z,U -p 8000:8000 -it quay.io/arkmq-org/mboxrag-server:latest
 ```
 
 `.env` needs to be configured as explained in the server section.
@@ -91,6 +91,50 @@ MODEL_ACCESS_TOKEN= # has to be set!
 ```
 
 Be sure you set every needed variable though.
+
+
+### K8s or OpenShit deployment
+
+Once you have deployed and pushed your image to the registry of your choice, you
+can deploy the server to a k8s compatible cluster:
+
+```bash
+cd server
+./deploy.sh \
+    -i ${CONTAINER_URL}\
+    -a ${MODEL_URL} \
+    -m ${MODEL_NAME} \
+    -t ${MODEL_ACCESS_TOKEN}
+```
+
+Once the pod has started it'll need some data to work, depending on the
+configuration of the `CREATE_MILVUS_DATABASE` variable, provide either a list of
+mails of a list of databases files for milvus:
+
+To get the name of the pod:
+
+```bash
+POD_NAME=$(oc apply -f -oc -o json get pods -n mbox-rag-server | jq -r .items[0].metadata.name)
+```
+
+To copy mails:
+
+```bash
+oc cp mails mbox-rag-server/${POD_NAME}:/server -c init-mbox-rag
+```
+
+To copy the database files:
+
+```bash
+oc cp db mbox-rag-server/${POD_NAME}:/server -c init-mbox-rag
+```
+
+It is important that the mails endup in the `/server/mails` directory and that
+the dbs endup in the `/server/db` directory. The init container will wait for
+either of those directories to get populated.
+
+Finally, visit the cluster route that was exposed to find the service:
+http://mboxrag-server-mbox-rag-server.apps-crc.testing/docs
 
 ## Frontend
 
@@ -111,14 +155,14 @@ Visit http://localhost:9000 to start chatting with the bot.
 
 ```bash
 cd server
-podman build -t quay.io/tlavocat/mboxrag-frontend:latest .
-podman push quay.io/tlavocat/mboxrag-frontend:latest # optionally push to quay
+podman build -t quay.io/arkmq-org/mboxrag-frontend:latest .
+podman push quay.io/arkmq-org/mboxrag-frontend:latest # optionally push to quay
 ```
 
 ### running command
 
 ```bash
-podman run 8080:8080 -it quay.io/tlavocat/mboxrag-frontend:latest
+podman run 8080:8080 -it quay.io/arkmq-org/mboxrag-frontend:latest
 ```
 
 Then visit http://localhost:8080

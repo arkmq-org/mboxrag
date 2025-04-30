@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mbox-rag-server-db-storage-claim
+  namespace: mbox-rag-server
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: crc-csi-hostpath-provisioner
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mbox-rag-server-mail-storage-claim
+  namespace: mbox-rag-server
+spec:
+  spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: crc-csi-hostpath-provisioner
+  volumeMode: Filesystem
