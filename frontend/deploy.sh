@@ -36,7 +36,17 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# retrieve the cluster domain to produce a valid cluster issuer
+clusterDomain=$(oc get -n openshift-ingress-operator ingresscontroller/default -o json | jq -r '.status.domain')
+if test -z "$clusterDomain"
+then
+  echo "The cluster domain can't be retrieved"
+  exit 1
+fi
+
+echo "cluster domain: $clusterDomain"
 echo "deploying using image: ${API_SERVER_IMAGE}"
 oc kustomize deploy \
     | sed "s|image: .*|image: ${API_SERVER_IMAGE}|" \
+    | sed "s|apps.crc.testing|${clusterDomain}|" \
     | oc apply -f -

@@ -9,7 +9,7 @@ import {OpenAPI} from 'src/openapi/requests';
 
 
 const App: React.FunctionComponent = () => {
-  OpenAPI.BASE = 'http://localhost:9000'
+  OpenAPI.BASE = 'http://localhost:8000'
   if (window.location.hostname.includes("frontend")){
     OpenAPI.BASE = 'http://'+window.location.hostname.replaceAll("frontend", "server")
   }

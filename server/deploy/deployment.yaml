@@ -19,12 +19,22 @@ spec:
         - name: mbox-rag-server
           image: quay.io/arkmq-org/mbox-rag-server:latest
           env:
+            - name: AWS_ACCESS_KEY_ID
+              value: 'aws_access_key_id'
+            - name: AWS_SECRET_ACCESS_KEY
+              value: 'aws_secret_access_key'
+            - name: AWS_REGION
+              value: 'aws_region'
             - name: CORS_FRONTEND_URL
               value: 'http://mboxrag-frontend-mbox-rag-frontend.apps-crc.testing'
             - name: NODE_EXTRA_CA_CERTS
               value: '/var/jolokia-api-server-selfsigned-ca-cert-secret/ca.crt'
+            - name: S3_BUCKET_DB
+              value: 'amq-rag-db'
+            - name: S3_BUCKET_MAILS
+              value: 'amq-rag-mails'
             - name: URI
-              value: '/server/db/milvus_demo.db'
+              value: '/tmp/db/milvus_demo.db'
             - name: CREATE_MILVUS_DATABASE
               value: 'False'
             - name: CHUNK_DOCS
@@ -34,7 +44,7 @@ spec:
             - name: CHUNK_OVERLAP
               value: '200'
             - name: MBOX_DIR
-              value: '/server/mails'
+              value: '/tmp/mails'
             - name: MODEL_API_URL
               value: 'model-api-url'
             - name: MODEL
@@ -57,27 +67,6 @@ spec:
             requests:
               cpu: 10m
               memory: 50Mi
-          volumeMounts:
-            - mountPath: /server/db
-              name: mbox-rag-server-db-storage
-            - mountPath: /server/mails
-              name: mbox-rag-server-mail-storage
-      initContainers:
-        - name: init-mbox-rag
-          image: registry.access.redhat.com/ubi8/ubi:latest
-          command: ['sh', '-c', 'FOLDER_TO_SCAN=$([[ "$CREATE_MILVUS_DATABASE" = "True" ]] && echo "/server/mails" || echo "/server/db"); while [[ "$(ls -a $FOLDER_TO_SCAN | wc -l)" -eq "2" ]]; do echo waiting for files in $FOLDER_TO_SCAN; sleep 30; done; sync; echo init done']
-          volumeMounts:
-            - mountPath: /server/db
-              name: mbox-rag-server-db-storage
-            - mountPath: /server/mails
-              name: mbox-rag-server-mail-storage
-      volumes:
-        - name: mbox-rag-server-db-storage
-          persistentVolumeClaim:
-            claimName: mbox-rag-server-db-storage-claim
-        - name: mbox-rag-server-mail-storage
-          persistentVolumeClaim:
-            claimName: mbox-rag-server-mail-storage-claim
       restartPolicy: Always
       dnsPolicy: ClusterFirst
   strategy:

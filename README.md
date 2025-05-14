@@ -104,34 +104,17 @@ cd server
     -i ${CONTAINER_URL}\
     -a ${MODEL_URL} \
     -m ${MODEL_NAME} \
-    -t ${MODEL_ACCESS_TOKEN}
+    -t ${MODEL_ACCESS_TOKEN} \
+    -r eu-north-1  \
+    -k ${AWS_KEY_ID} \
+    -s ${AWS_KEY_SECRET} \
+    -d amq-rag-db \
+    -M amq-rag-mails
 ```
 
-Once the pod has started it'll need some data to work, depending on the
-configuration of the `CREATE_MILVUS_DATABASE` variable, provide either a list of
-mails of a list of databases files for milvus:
-
-To get the name of the pod:
-
-```bash
-POD_NAME=$(oc apply -f -oc -o json get pods -n mbox-rag-server | jq -r .items[0].metadata.name)
-```
-
-To copy mails:
-
-```bash
-oc cp mails mbox-rag-server/${POD_NAME}:/server -c init-mbox-rag
-```
-
-To copy the database files:
-
-```bash
-oc cp db mbox-rag-server/${POD_NAME}:/server -c init-mbox-rag
-```
-
-It is important that the mails endup in the `/server/mails` directory and that
-the dbs endup in the `/server/db` directory. The init container will wait for
-either of those directories to get populated.
+You will need to provide two s3 buckets with the data to download. With `-d`
+specify the S3 bucket containing the milvus dbs, and with the `-M` parameter
+specify the S3 bucket containing the mails.
 
 Finally, visit the cluster route that was exposed to find the service:
 http://mboxrag-server-mbox-rag-server.apps-crc.testing/docs

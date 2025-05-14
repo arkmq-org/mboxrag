@@ -12,5 +12,4 @@ EXPOSE 8080
 USER root
 RUN yarn install --network-timeout 1000000
 RUN yarn build
-USER 1001
 ENTRYPOINT ["yarn", "start"]

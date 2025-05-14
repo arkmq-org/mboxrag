@@ -1,6 +1,5 @@
 resources:
   - namespace.yaml
-  - storage.yaml
   - deployment.yaml
   - service.yaml
   - route.yaml

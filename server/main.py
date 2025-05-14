@@ -17,12 +17,45 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 import os
+import boto3
 load_dotenv()
 
 import logging
 logger = logging.getLogger('uvicorn.errors')
 
 from fastapi.middleware.cors import CORSMiddleware
+
+def download_all_s3_files(bucket_name, local_dir):
+    """Downloads all files from an S3 bucket to a local directory.
+
+    Args:
+        bucket_name (str): The name of the S3 bucket.
+        local_dir (str): The local directory to download files to.
+    """
+    s3 = boto3.client('s3', config=boto3.session.Config(signature_version='s3v4'))
+
+    try:
+        response = s3.list_objects_v2(Bucket=bucket_name)
+        if 'Contents' in response:
+            for obj in response['Contents']:
+                file_key = obj['Key']
+                local_file_path = os.path.join(local_dir, file_key)
+                os.makedirs(os.path.dirname(local_file_path), exist_ok=True)
+                logger.info(f"Downloading s3://{bucket_name}/{file_key} to {local_file_path}")
+                s3.download_file(bucket_name, file_key, local_file_path)
+        else:
+            logger.info(f"Bucket '{bucket_name}' is empty.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+def download_files():
+    logger.info("downloading files")
+    if os.getenv("S3_BUCKET_MAILS"):
+        download_all_s3_files(os.getenv("S3_BUCKET_DB"),
+                          "/tmp/db")
+    if os.getenv("S3_BUCKET_DB"):
+        download_all_s3_files(os.getenv("S3_BUCKET_MAILS"),
+                          "/tmp/mails")
 
 def connect_to_milvus():
     embeddings = HuggingFaceEmbeddings(model_name="mixedbread-ai/mxbai-embed-large-v1")
@@ -127,6 +160,7 @@ def define_rag_pipeline():
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    download_files()
     connect_to_milvus()
     populate_database()
     logger.info("Successfully loaded Milvus!")

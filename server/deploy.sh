@@ -2,6 +2,12 @@
 
 DEFAULT_IMAGE="quay.io/arkmq-org/mbox-rag-server:latest"
 
+AWS_REGION=""
+AWS_ACCESS_KEY_ID=""
+AWS_SECRET_ACCESS_KEY=""
+S3_BUCKET_DB=""
+S3_BUCKET_MAILS=""
+
 MODEL_API_URL=""
 MODEL=""
 MODEL_ACCESS_TOKEN=""
@@ -19,6 +25,11 @@ function printUsage() {
   echo "  -m|--model  set the llm model to be used"
   echo "  -a|--model-api-url  set the llm api url"
   echo "  -t|--model-access-token  set the llm access token"
+  echo "  -k|--aws-key-id"
+  echo "  -s|--aws-secret-key"
+  echo "  -r|--aws-region"
+  echo "  -d|--bucket-db"
+  echo "  -M|--bucket-mails"
   echo "  -h|--help   Print this message."
 }
 
@@ -48,6 +59,31 @@ while [[ $# -gt 0 ]]; do
       shift
       shift
       ;;
+    -k|--aws-key)
+      AWS_ACCESS_KEY_ID="$2"
+      shift
+      shift
+      ;;
+    -s|--aws-secret-key)
+      AWS_SECRET_ACCESS_KEY="$2"
+      shift
+      shift
+      ;;
+    -r|--aws-region)
+      AWS_REGION="$2"
+      shift
+      shift
+      ;;
+    -d|--bucket-db)
+      S3_BUCKET_DB="$2"
+      shift
+      shift
+      ;;
+    -M|--bucket-mails)
+      S3_BUCKET_MAILS="$2"
+      shift
+      shift
+      ;;
     -*|--*)
       echo "Unknown option $1"
       printUsage
@@ -73,13 +109,37 @@ if [ -z "${MODEL_ACCESS_TOKEN}" ]; then
     printUsage
     exit 1
 fi
-
+if [ -z "${AWS_REGION}" ]; then
+    echo "aws region must be set"
+    printUsage
+    exit 1
+fi
+if [ -z "${AWS_ACCESS_KEY_ID}" ]; then
+    echo "aws access key id must be set"
+    printUsage
+    exit 1
+fi
+if [ -z "${AWS_SECRET_ACCESS_KEY}" ]; then
+    echo "aws secret access key must be set"
+    printUsage
+    exit 1
+fi
+if [ -z "${S3_BUCKET_DB}" ]; then
+    echo "DB buckedt must be set"
+    printUsage
+    exit 1
+fi
+if [ -z "${S3_BUCKET_MAILS}" ]; then
+    echo "mails bucket must be set"
+    printUsage
+    exit 1
+fi
 
 # retrieve the cluster domain to produce a valid cluster issuer
 clusterDomain=$(oc get -n openshift-ingress-operator ingresscontroller/default -o json | jq -r '.status.domain')
 if test -z "$clusterDomain"
 then
-  echo "The cluster domain can't be retrived"
+  echo "The cluster domain can't be retrieved"
   exit 1
 fi
 echo "cluster domain: $clusterDomain"
@@ -91,4 +151,9 @@ oc kustomize deploy \
     | sed "s|value: model-name|value: ${MODEL}|" \
     | sed "s|value: model-token|value: ${MODEL_ACCESS_TOKEN}|" \
     | sed "s|apps.crc.testing|${clusterDomain}|" \
+    | sed "s|aws_access_key_id|${AWS_ACCESS_KEY_ID}|" \
+    | sed "s|aws_secret_access_key|${AWS_SECRET_ACCESS_KEY}|" \
+    | sed "s|aws_region|${AWS_REGION}|" \
+    | sed "s|amq-rag-db|${S3_BUCKET_DB}|" \
+    | sed "s|amq-rag-mails|${S3_BUCKET_MAILS}|" \
     | oc apply -f -

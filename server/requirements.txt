@@ -12,3 +12,4 @@ python-dotenv
 matplotlib
 fastapi[standard]
 mailbox
+boto3==1.38.8
